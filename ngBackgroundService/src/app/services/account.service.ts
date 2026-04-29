@@ -14,7 +14,11 @@ export class AccountService {
   username = "test";
   motDePasse = "Passw0rd!";
 
-  constructor(public http: HttpClient) { }
+  constructor(public http: HttpClient) {
+    let username = sessionStorage.getItem("username");
+    if(username)
+      this.username = username;
+  }
 
   async register(){
     let registerData = {
@@ -33,6 +37,7 @@ export class AccountService {
     }
     let result = await lastValueFrom(this.http.post<any>(this.accountBaseUrl + 'Login', registerData));
     sessionStorage.setItem("token", result.token);
+    sessionStorage.setItem("username", this.username);
   }
 
   async logout(){
