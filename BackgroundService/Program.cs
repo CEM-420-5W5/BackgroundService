@@ -33,51 +33,48 @@ builder.Services.AddCors(options =>
         .AllowCredentials());
 });
 
-string? urls = builder.Configuration["ASPNETCORE_URLS"];
-if (urls != null)
+
+string[] serverAdresses = { "https://backgroundservice-f8f9.onrender.com", "http://backgroundservice-f8f9.onrender.com" }; 
+
+SymmetricSecurityKey signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("C'est tellement la meilleure cle qui a jamais ete cree dans l'histoire de l'humanite (doit etre longue)"));
+
+builder.Services.AddAuthentication(options =>
 {
-    string[] serverAdresses = { "https://backgroundservice-f8f9.onrender.com", "http://backgroundservice-f8f9.onrender.com" }; 
-
-    SymmetricSecurityKey signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("C'est tellement la meilleure cle qui a jamais ete cree dans l'histoire de l'humanite (doit etre longue)"));
-
-    builder.Services.AddAuthentication(options =>
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+}).AddJwtBearer(options =>
+{
+    options.SaveToken = true;
+    // TODO: Seulement lors du developement
+    options.RequireHttpsMetadata = false;
+    options.TokenValidationParameters = new TokenValidationParameters()
     {
-        options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-        options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-        options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
-    }).AddJwtBearer(options =>
-    {
-        options.SaveToken = true;
-        // TODO: Seulement lors du developement
-        options.RequireHttpsMetadata = false;
-        options.TokenValidationParameters = new TokenValidationParameters()
-        {
-            ValidateAudience = false,
-            ValidateIssuer = true,
-            ValidIssuers = serverAdresses,
-            ValidAudience = null,
-            IssuerSigningKey = signingKey
-        };
+        ValidateAudience = false,
+        ValidateIssuer = true,
+        ValidIssuers = serverAdresses,
+        ValidAudience = null,
+        IssuerSigningKey = signingKey
+    };
 
-        options.Events = new JwtBearerEvents
+    options.Events = new JwtBearerEvents
+    {
+        OnMessageReceived = context =>
         {
-            OnMessageReceived = context =>
+            var accessToken = context.Request.Query["access_token"];
+
+            // If the request is for our hub...
+            var path = context.HttpContext.Request.Path;
+            if (!string.IsNullOrEmpty(accessToken) &&
+                (path.StartsWithSegments("/game")))
             {
-                var accessToken = context.Request.Query["access_token"];
-
-                // If the request is for our hub...
-                var path = context.HttpContext.Request.Path;
-                if (!string.IsNullOrEmpty(accessToken) &&
-                    (path.StartsWithSegments("/game")))
-                {
-                    // Read the token out of the query string
-                    context.Token = accessToken;
-                }
-                return Task.CompletedTask;
+                // Read the token out of the query string
+                context.Token = accessToken;
             }
-        };
-    });
-}
+            return Task.CompletedTask;
+        }
+    };
+});
 
 builder.Services.AddSignalR();
 
