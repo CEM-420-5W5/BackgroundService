@@ -36,7 +36,7 @@ builder.Services.AddCors(options =>
 string? urls = builder.Configuration["ASPNETCORE_URLS"];
 if (urls != null)
 {
-    string[] serverAdresses = { "https://backgroundservice-f8f9.onrender.com" }; 
+    string[] serverAdresses = { "https://backgroundservice-f8f9.onrender.com", "http://backgroundservice-f8f9.onrender.com" }; 
 
     SymmetricSecurityKey signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("C'est tellement la meilleure cle qui a jamais ete cree dans l'histoire de l'humanite (doit etre longue)"));
 
