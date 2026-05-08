@@ -23,7 +23,7 @@ interface GameInfo{
 export class AppComponent {
   title = 'ngBackgroundService';
 
-  baseUrl = "https://localhost:7056/";
+  baseUrl = "https://backgroundservice-f8f9.onrender.com/";
 
   nbWins = 0;
 
