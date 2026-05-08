@@ -7,7 +7,7 @@ import { lastValueFrom } from 'rxjs';
 })
 export class AccountService {
 
-  baseUrl = "https://localhost:7056/";
+  baseUrl = "https://backgroundservice-f8f9.onrender.com/";
   apiBaseUrl = this.baseUrl + "api/"
   accountBaseUrl = this.apiBaseUrl + "Account/";
 
