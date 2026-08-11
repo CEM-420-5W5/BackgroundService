@@ -1,8 +1,14 @@
 "use client"
 
-import { BorderedContainer } from "ui-exercices-5w5"
+import { Suspense } from "react"
+import dynamic from "next/dynamic"
 import { Button } from "ui-exercices-5w5"
-import { LoginView } from "ui-exercices-5w5"
+import { BorderedContainer } from "ui-exercices-5w5"
+
+const LoginView = dynamic(
+  () => import("ui-exercices-5w5").then(mod => ({ default: mod.LoginView })),
+  { ssr: false }
+)
 
 export default function Home() {
   const handleClick = () => {
@@ -10,53 +16,14 @@ export default function Home() {
   }
 
   return (
-    
     <div>
-      <h1>My App</h1>
+      <h1>Background Service</h1>
+      <Suspense fallback={<div>Chargement...</div>}>
+        <LoginView apiUrl="http://localhost:5011/api/Account/" />
+      </Suspense>
       <BorderedContainer className="m-4">
-        TEST
-        <Button onClick={handleClick}>Un bouton juste pour moi</Button>
+        <div>Something</div>
       </BorderedContainer>
-      <LoginView apiUrl="http://localhost:5011/api/Account/" /></div>
-    /*<div style="width:400px" class="container">
-      <form class="borderedZone">
-        <div class="loginZone" *ngIf="!isLoggedIn()">
-          <mat-form-field  style="width: 100%;">
-            <mat-label>Nom d'usager</mat-label>
-            <input matInput type="text" [(ngModel)]="account.username" name="username"/>
-          </mat-form-field>
-        </div>
-        <div class="loginZone" *ngIf="isLoggedIn()">
-          <div style="padding-top: 24px;">Bonjour <b>{{account.username}}!</b></div>
-        </div>
-        <div *ngIf="!isLoggedIn()">
-          <button mat-raised-button color="primary" (click)="register()">Enregistrer</button>
-          <button mat-raised-button color="accent" (click)="login()">Login</button>
-        </div>
-        <div *ngIf="isLoggedIn()">
-          <button mat-raised-button color="accent" (click)="logout()">Logout</button>
-        </div>
-      </form>
-
-      <div class="borderedZone" *ngIf="isLoggedIn()" style="margin-top: 32px; height: 130px">
-        <div *ngIf="!isConnected">
-          <div >Pas connecté au Hub..</div>
-          <br>
-          <div>
-            <button mat-raised-button color="primary" (click)="connectToHub()">Connecter au Hub</button>
-          </div>
-        </div>
-        <div *ngIf="isConnected">
-
-          <div >Connecté! <!-- TODO: Afficher le nb de wins--></div>
-          <br>
-          <div>
-            <button mat-raised-button color="primary" (click)="Increment()">Cliquer</button>
-            Clicks dans ce round: <b>{{nbClicks}}</b>
-          </div>
-          <!-- Permettre d'acheter un multiplier et afficher le multiplier actuel -->
-        </div>
-      </div>
-    </div>*/
+    </div>
   );
 }
