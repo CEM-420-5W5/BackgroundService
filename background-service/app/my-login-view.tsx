@@ -10,6 +10,7 @@ import { Input } from "./base/input";
 export interface LoginViewProps {
     apiUrl?: string;
     onLoginSuccess?: (username: string, token: string) => void;
+    onLogout?: () => void;
 }
 
 interface LoginResultDTO {
@@ -17,7 +18,7 @@ interface LoginResultDTO {
     token: string;
 }
 
-export function MyLoginView({ apiUrl = "http://localhost:5011/api/Account", onLoginSuccess }: LoginViewProps) {
+export function MyLoginView({ apiUrl = "http://localhost:5011/api/Account", onLoginSuccess, onLogout }: LoginViewProps) {
 
     const [token, setToken] = useState<string | null>(null);
     const [loggedInUsername, setLoggedInUsername] = useState<string | null>(null);
@@ -91,6 +92,7 @@ export function MyLoginView({ apiUrl = "http://localhost:5011/api/Account", onLo
         sessionStorage.removeItem("username");
         setToken(null);
         setLoggedInUsername(null);
+        onLogout?.();
     }
 
     function isLoggedIn() : boolean{
@@ -100,7 +102,7 @@ export function MyLoginView({ apiUrl = "http://localhost:5011/api/Account", onLo
     function displayLogin(){
         if(!isLoggedIn()){
             return(
-                <div className="w-full max-w-md mx-auto">
+                <div className="w-full">
                     {errorMessage && (
                         <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
                             {errorMessage}
@@ -141,22 +143,22 @@ export function MyLoginView({ apiUrl = "http://localhost:5011/api/Account", onLo
         }
         else{
             return (
-                <div className="w-fullmax-w-md mx-auto">
-                    <div className="flex items-center justify-between">
+                <div className="w-full">
+                    <div className="flex items-center justify-start">
                         <div>
                             <p className="text-sm text-gray-600">Connecté en tant que</p>
                             <p className="text-xl font-bold">{loggedInUsername}</p>
                         </div>
-                                               
                     </div>
-                    <div className="flex gap-3 pt-2">
-                            <Button 
-                                variant="secondary"
-                                onClick={logout}
-                            >
-                                Déconnexion
-                            </Button>
-                        </div>
+                    
+                    <div className="flex gap-3 pt-2 mt-7">
+                        <Button 
+                            variant="secondary"
+                            onClick={logout}
+                        >
+                            Déconnexion
+                        </Button>
+                    </div>
                 </div>
             );
         }
