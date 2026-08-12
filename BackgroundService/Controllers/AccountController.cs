@@ -54,7 +54,13 @@ namespace BackgroundService.Controllers
             _context.Player.Add(player);
             _context.SaveChanges();
 
-            return Ok(new { Message = "Inscription réussie ! 🥳" });
+            var loginDTO = new LoginDTO()
+            {
+                Username = register.Username,
+                Password = register.Password
+            };
+
+            return await Login(loginDTO);
         }
 
         [HttpPost]
@@ -85,7 +91,7 @@ namespace BackgroundService.Controllers
 
                 string tokenString = new JwtSecurityTokenHandler().WriteToken(token);
 
-                return Ok(new { Token = tokenString });
+                return Ok(new { Token = tokenString, login.Username });
             }
 
             return NotFound(new { Error = "L'utilisateur est introuvable ou le mot de passe de concorde pas" });
