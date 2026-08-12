@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, useRef } from "react"
 import { HubConnection, HubConnectionBuilder, LogLevel } from "@microsoft/signalr"
 
 import { Button, BorderedContainer, LoginView } from "ui-exercices-5w5"
@@ -26,8 +26,17 @@ export default function Home() {
   const [nbClicks, setNbClicks] = useState(0);
 
   // TODO: Ajouter une variable nbWins
+  const [nbWins, setNbWins] = useState(0);
   // TODO: Ajouter 3 variables: Le multiplier, le multiplierCost, mais également le multiplierIntialCost pour remettre à jour multiplierCost après chaque fin de round (ou sinon on peut passer l'information dans l'appel qui vient du Hub!)
+  const [multiplier, setMultiplier] = useState(1);
+  const [multiplierCost, setMultiplierCost] = useState(0);
+  const [multiplierInitialCost, setMultiplierInitialCost] = useState(0);
 
+  const multiplierInitialCostRef = useRef(multiplierInitialCost);
+
+  useEffect(() => {
+    multiplierInitialCostRef.current = multiplierInitialCost;
+  }, [multiplierInitialCost]);
 
   function connectToHub() {
     const newHubConnection = new HubConnectionBuilder()
@@ -46,13 +55,23 @@ export default function Home() {
       console.log("Réception de GameInfo: multiplierCost=" + data.multiplierCost + ", nbWins=" + data.nbWins);
       setIsConnected(true);
       // TODO: Mettre à jour les variables pour le coût du multiplier et le nbWins
+      setMultiplierInitialCost(data.multiplierCost);
+      setMultiplierCost(data.multiplierCost);
+      setNbWins(data.nbWins);
     });
 
     newHubConnection.on('EndRound', (data:RoundResult) => {
       setNbClicks(0);
+      
       // TODO: Reset du multiplierCost et le multiplier
+      setMultiplierCost(multiplierInitialCostRef.current);
+      setMultiplier(1);
+
+      let username = sessionStorage.getItem("username");
 
       // TODO: Si le joueur a gagné, on augmene nbWins
+      if(data.winners != null && data.winners.indexOf(username!) >= 0)
+        setNbWins(nbWins => nbWins + 1);
 
       if(data.nbClicks > 0){
         let phrase = " a gagné avec ";
@@ -77,12 +96,19 @@ export default function Home() {
 
   function Increment() {
     //TODO: Augmenter le nbClicks par la valeur du multiplicateur
-    setNbClicks(nbClicks + 1);
+    setNbClicks(nbClicks + multiplier);
     hubConnection!.invoke('Increment')
   }
 
   function BuyMultiplier() {
     // TODO: Implémenter la méthode qui permet d'acheter un niveau de multiplier (Appel au Hub!)
+    if(nbClicks >= multiplierCost)
+    {
+      hubConnection!.invoke('BuyMultiplier');
+      setNbClicks(nbClicks - multiplierCost);
+      setMultiplier(multiplier * 2);
+      setMultiplierCost(multiplierCost * 2);
+    }
   }
 
   function logout() {
@@ -107,13 +133,17 @@ export default function Home() {
     else{
       return (
         <div>
-          <div >Connecté! {/*TODO: Afficher le nb de wins*/}</div>
+          <div >Connecté! Vous avez eu <b>{nbWins}</b> victoires!</div>
           <br />
           <div>
             <Button className="mr-2" variant="default" onClick={Increment}>Cliquer</Button>
             Clicks dans ce round: <b>{nbClicks}</b>
           </div>
           {/* Permettre d'acheter un multiplier et afficher le multiplier actuel */}
+          <div>
+        <Button disabled={nbClicks < multiplierCost} variant="default" onClick={BuyMultiplier}>Acheter pour {multiplierCost}</Button>
+        Multiplicateur: <b>{multiplier}</b>
+      </div>
         </div>
       );
     }
