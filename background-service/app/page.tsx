@@ -1,19 +1,9 @@
 "use client"
 
-import { Suspense, useState } from "react"
-import dynamic from "next/dynamic"
-import { MyLoginView } from "./my-login-view"
-import { BorderedContainer } from "./bordered-container"
+import { useState } from "react"
 import { HubConnection, HubConnectionBuilder, LogLevel } from "@microsoft/signalr"
 
-import { Button } from "./base/button";
-//import { Button } from "ui-exercices-5w5"
-//import { BorderedContainer, LoginView } from "ui-exercices-5w5"
-
-/*const LoginView = dynamic(
-  () => import("ui-exercices-5w5").then(mod => ({ default: mod.LoginView })),
-  { ssr: false }
-)*/
+import { Button, BorderedContainer, LoginView } from "ui-exercices-5w5"
 
 const serverUrl = "http://localhost:5080/"
 const loginUrl = serverUrl + "api/Account"
@@ -46,21 +36,19 @@ export default function Home() {
                               .configureLogging(LogLevel.Information)
                               .build();
 
-    setHubConnection(newHubConnection);
-
-    if(!hubConnection)
+    if(!newHubConnection)
     {
       console.log("Impossible de créer un HubConnection???");
       return;
     }
 
-    hubConnection.on('GameInfo', (data:GameInfo) => {
+    newHubConnection.on('GameInfo', (data:GameInfo) => {
       console.log("Réception de GameInfo: multiplierCost=" + data.multiplierCost + ", nbWins=" + data.nbWins);
       setIsConnected(true);
       // TODO: Mettre à jour les variables pour le coût du multiplier et le nbWins
     });
 
-    hubConnection.on('EndRound', (data:RoundResult) => {
+    newHubConnection.on('EndRound', (data:RoundResult) => {
       setNbClicks(0);
       // TODO: Reset du multiplierCost et le multiplier
 
@@ -77,12 +65,14 @@ export default function Home() {
       }
     });
 
-    hubConnection
+    newHubConnection
       .start()
       .then(() => {
         console.log("Connecté au Hub");
       })
       .catch(err => console.log('Error while starting connection: ' + err))
+
+    setHubConnection(newHubConnection);
   }
 
   function Increment() {
@@ -120,7 +110,7 @@ export default function Home() {
           <div >Connecté! {/*TODO: Afficher le nb de wins*/}</div>
           <br />
           <div>
-            <Button variant="default" onClick={Increment}>Cliquer</Button>
+            <Button className="mr-2" variant="default" onClick={Increment}>Cliquer</Button>
             Clicks dans ce round: <b>{nbClicks}</b>
           </div>
           {/* Permettre d'acheter un multiplier et afficher le multiplier actuel */}
@@ -133,8 +123,8 @@ export default function Home() {
     <div>
       <h1 className="text-3xl font-bold mb-2 p-2">Background Service</h1>
       <div className="p-2 max-w-[700px]">
-        <MyLoginView apiUrl={loginUrl} onLogout={logout} />
-        <BorderedContainer className="p-2 mt-2">
+        <LoginView apiUrl={loginUrl} onLogout={logout} />
+        <BorderedContainer className="p-6 mt-2">
           {RenderContent()}
         </BorderedContainer>
       </div>
